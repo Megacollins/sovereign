@@ -45,36 +45,36 @@ export const SOVEREIGN_CONSTITUTION: ConstitutionRule[] = [
     id: 'RISK_SCORE',
     name: 'Risk Score Threshold',
     description: 'Maximum risk score allowed: 7',
-    check: (action) => action.riskScore <= 7,
-    errorMessage: `Risk Score ${'{riskScore}'} exceeds maximum threshold of 7`,
+    check: (action) => Number(action.riskScore) <= 7,
+    errorMessage: 'RISK_SCORE_EXCEEDED',
   },
   {
     id: 'MAX_DRAWDOWN',
     name: 'Maximum Drawdown Limit',
     description: 'Maximum drawdown must not exceed 15%',
-    check: (action) => action.estimatedDrawdown <= 15,
-    errorMessage: `Estimated drawdown ${'{drawdown}'}% exceeds 15% maximum`,
+    check: (action) => Number(action.estimatedDrawdown) <= 15,
+    errorMessage: 'DRAWDOWN_EXCEEDED',
   },
   {
     id: 'STABLECOIN_RESERVE',
     name: 'Stablecoin Reserve Requirement',
     description: 'Stablecoin reserve must remain at or above 30%',
-    check: (action) => action.stablecoinReserveAfter >= 30,
-    errorMessage: `Stablecoin reserve would drop to ${'{reserve}'}%, below 30% minimum`,
+    check: (action) => Number(action.stablecoinReserveAfter) >= 30,
+    errorMessage: 'RESERVE_TOO_LOW',
   },
   {
     id: 'RWA_ALLOCATION',
     name: 'RWA Allocation Minimum',
     description: 'RWA allocation must remain at or above 20%',
-    check: (action) => action.rwaAllocationAfter >= 20,
-    errorMessage: `RWA allocation would drop to ${'{rwa}'}%, below 20% minimum`,
+    check: (action) => Number(action.rwaAllocationAfter) >= 20,
+    errorMessage: 'RWA_TOO_LOW',
   },
   {
     id: 'MAX_SINGLE_ALLOCATION',
     name: 'Single Asset Allocation Cap',
     description: 'No single asset allocation may exceed 50%',
-    check: (action) => action.allocationPercent <= 50,
-    errorMessage: `Allocation of ${'{allocation}'}% exceeds 50% single-asset cap`,
+    check: (action) => Number(action.allocationPercent) <= 50,
+    errorMessage: 'ALLOCATION_EXCEEDED',
   },
 ]
 
@@ -95,17 +95,21 @@ export function validateAction(action: ProposedAction): ValidationResult {
 
   for (const rule of SOVEREIGN_CONSTITUTION) {
     const passed = rule.check(action)
+    const getErrorMessage = () => {
+      switch (rule.id) {
+        case 'RISK_SCORE': return `Risk Score ${action.riskScore}/10 exceeds maximum threshold of 7`
+        case 'MAX_DRAWDOWN': return `Estimated drawdown ${action.estimatedDrawdown}% exceeds 15% maximum`
+        case 'STABLECOIN_RESERVE': return `Stablecoin reserve would drop to ${action.stablecoinReserveAfter}%, below 30% minimum`
+        case 'RWA_ALLOCATION': return `RWA allocation would drop to ${action.rwaAllocationAfter}%, below 20% minimum`
+        case 'MAX_SINGLE_ALLOCATION': return `Allocation of ${action.allocationPercent}% exceeds 50% single-asset cap`
+        default: return 'Constitutional rule violated'
+      }
+    }
+
     results.push({
       rule,
       passed,
-      errorMessage: passed
-        ? undefined
-        : rule.errorMessage
-            .replace('{riskScore}', action.riskScore.toString())
-            .replace('{drawdown}', action.estimatedDrawdown.toString())
-            .replace('{reserve}', action.stablecoinReserveAfter.toString())
-            .replace('{rwa}', action.rwaAllocationAfter.toString())
-            .replace('{allocation}', action.allocationPercent.toString()),
+      errorMessage: passed ? undefined : getErrorMessage(),
     })
 
     if (!passed && !violatedRule) {
