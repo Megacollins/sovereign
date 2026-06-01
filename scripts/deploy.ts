@@ -50,10 +50,11 @@ async function deployContract(
 }
 
 async function main() {
-  const privateKey = env.DEPLOYER_PRIVATE_KEY as `0x${string}`;
-  if (!privateKey || privateKey === "your_private_key_here") {
+  const rawKey = env.DEPLOYER_PRIVATE_KEY;
+  if (!rawKey || rawKey === "your_private_key_here") {
     throw new Error("DEPLOYER_PRIVATE_KEY not set in .env.local");
   }
+  const privateKey = rawKey as `0x${string}`;
 
   const account = privateKeyToAccount(privateKey);
 
