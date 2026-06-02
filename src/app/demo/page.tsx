@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { validateAction, DEMO_ACTIONS, ProposedAction, ValidationResult } from '@/lib/constitutionEngine'
 import { generateCaseFile, WitnessCaseFile } from '@/lib/witness'
@@ -26,13 +27,26 @@ const STATE_COLORS: Record<FlowState, string> = {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+const STRATEGY_RULES: Record<string, { risk: number; drawdown: number; stablecoin: number; rwa: number; cap: number }> = {
+  conservative: { risk: 5, drawdown: 10, stablecoin: 40, rwa: 30, cap: 30 },
+  balanced: { risk: 7, drawdown: 15, stablecoin: 30, rwa: 20, cap: 50 },
+  aggressive: { risk: 8, drawdown: 25, stablecoin: 20, rwa: 15, cap: 60 },
+  rwa: { risk: 4, drawdown: 8, stablecoin: 25, rwa: 50, cap: 40 },
+}
+
 export default function DemoPage() {
+  const searchParams = useSearchParams()
+  const sovereignName = searchParams.get('name') || 'Sovereign Alpha'
+  const strategy = searchParams.get('strategy') || 'balanced'
+  const agentId = sovereignName.toUpperCase().replace(/\s+/g, '-')
+  const rules = STRATEGY_RULES[strategy] || STRATEGY_RULES.balanced
+
   const [flowState, setFlowState] = useState<FlowState>('IDLE')
   const [currentAction, setCurrentAction] = useState<ProposedAction | null>(null)
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null)
   const [evaluatingIndex, setEvaluatingIndex] = useState(-1)
   const [caseFile, setCaseFile] = useState<WitnessCaseFile | null>(null)
-  const [reputation, setReputation] = useState<SovereignReputation>(createInitialReputation('SOVEREIGN-ALPHA', 'Sovereign Alpha'))
+  const [reputation, setReputation] = useState<SovereignReputation>(createInitialReputation(agentId, sovereignName))
   const [prevTrustScore, setPrevTrustScore] = useState(75)
   const [txHash, setTxHash] = useState('0x7f3a9b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0')
   const [auditLog, setAuditLog] = useState<WitnessCaseFile[]>([])
@@ -87,7 +101,7 @@ export default function DemoPage() {
         setValidationResult(result)
         await sleep(400)
         setFlowState('REJECTED')
-        const cf = generateCaseFile(action, result, 'SOVEREIGN-ALPHA', 'Sovereign Alpha')
+        const cf = generateCaseFile(action, result, agentId, sovereignName)
         setCaseFile(cf)
         setAuditLog((prev) => [cf, ...prev])
         return
@@ -112,7 +126,7 @@ export default function DemoPage() {
     setFlowState('RECORDED')
     await sleep(1000)
 
-    const cf = generateCaseFile(action, result, 'SOVEREIGN-ALPHA', 'Sovereign Alpha', txHash)
+    const cf = generateCaseFile(action, result, agentId, sovereignName, txHash)
     setCaseFile(cf)
     setAuditLog((prev) => [cf, ...prev])
     setFlowState('WITNESS')
@@ -145,7 +159,7 @@ export default function DemoPage() {
           </div>
           <div className="text-right">
             <div className="text-xs text-gray-500">AGENT ID</div>
-            <div className="text-cyan-400 text-sm font-bold">SOVEREIGN-ALPHA</div>
+            <div className="text-cyan-400 text-sm font-bold">{agentId}</div>
             <div className="text-xs text-gray-500 mt-1">ERC-8004 IDENTITY</div>
           </div>
         </div>
@@ -379,7 +393,13 @@ export default function DemoPage() {
             <div className="border border-gray-700 bg-gray-900 rounded-xl p-4">
               <div className="text-gray-400 text-xs font-bold mb-3 tracking-widest">ACTIVE CONSTITUTION</div>
               <div className="space-y-2 text-xs">
-                {[['Max Risk Score', '≤ 7'], ['Max Drawdown', '≤ 15%'], ['Stablecoin Reserve', '≥ 30%'], ['RWA Allocation', '≥ 20%'], ['Single Asset Cap', '≤ 50%']].map(([rule, value]) => (
+                {[
+                  ['Max Risk Score', `≤ ${rules.risk}`],
+                  ['Max Drawdown', `≤ ${rules.drawdown}%`],
+                  ['Stablecoin Reserve', `≥ ${rules.stablecoin}%`],
+                  ['RWA Allocation', `≥ ${rules.rwa}%`],
+                  ['Single Asset Cap', `≤ ${rules.cap}%`],
+                ].map(([rule, value]) => (
                   <div key={rule} className="flex justify-between items-center py-1 border-b border-gray-800">
                     <span className="text-gray-400">{rule}</span>
                     <span className="text-cyan-300 font-bold">{value}</span>

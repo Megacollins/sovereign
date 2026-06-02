@@ -210,7 +210,7 @@ export default function CreateSovereignPage() {
                     <div className="flex justify-between"><span className="text-gray-400">Status</span><span className="text-green-400 font-bold">ACTIVE</span></div>
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={() => router.push('/demo')} className="flex-1 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-black rounded-lg transition-colors text-sm">
+                    <button onClick={() => router.push(`/demo?name=${encodeURIComponent(name)}&strategy=${selectedStrategy}`)} className="flex-1 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-black rounded-lg transition-colors text-sm">
                       WATCH IT OPERATE →
                     </button>
                     <button onClick={() => router.push('/leaderboard')} className="flex-1 py-3 border border-gray-600 text-gray-300 hover:border-gray-400 rounded-lg transition-colors text-sm">
