@@ -132,7 +132,7 @@ export default function CreateSovereignPage() {
                 <div className="space-y-3 text-sm mb-6">
                   <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="text-white font-bold">{name}</span></div>
                   <div className="flex justify-between"><span className="text-gray-400">Strategy</span><span className="text-white">{selectedStrategyData.name} {selectedStrategyData.icon}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Network</span><span className="text-cyan-400">Mantle Sepolia</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Network</span><span className="text-cyan-400">Mantle Mainnet</span></div>
                   <div className="flex justify-between"><span className="text-gray-400">Identity Standard</span><span className="text-white">ERC-8004</span></div>
                 </div>
                 <div className="border-t border-gray-700 pt-4">
@@ -204,7 +204,7 @@ export default function CreateSovereignPage() {
                   <div className="text-white text-lg mb-6">{name}</div>
                   <div className="border border-gray-700 bg-gray-900 rounded-lg p-4 text-left space-y-2 text-sm mb-6">
                     <div className="flex justify-between"><span className="text-gray-400">Sovereign ID</span><span className="text-cyan-400 font-bold">#{sovereignId}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Network</span><span className="text-white">Mantle Sepolia</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Network</span><span className="text-white">Mantle Mainnet</span></div>
                     <div className="flex justify-between"><span className="text-gray-400">Identity</span><span className="text-white">ERC-8004</span></div>
                     <div className="flex justify-between"><span className="text-gray-400">Initial Trust Score</span><span className="text-cyan-400 font-bold">75</span></div>
                     <div className="flex justify-between"><span className="text-gray-400">Status</span><span className="text-green-400 font-bold">ACTIVE</span></div>
