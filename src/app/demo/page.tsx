@@ -7,6 +7,7 @@ import { generateCaseFile, WitnessCaseFile } from '@/lib/witness'
 import { createInitialReputation, updateReputation, SovereignReputation } from '@/lib/reputationEngine'
 import { recordDecisionOnChain } from '@/lib/contracts'
 import Navbar from '@/components/Navbar'
+import MarketTicker from '@/components/MarketTicker'
 
 type FlowState = 'IDLE' | 'THINKING' | 'EVALUATING' | 'REJECTED' | 'APPROVED' | 'RECORDING' | 'RECORDED' | 'WITNESS' | 'REPUTATION'
 
@@ -337,6 +338,7 @@ export default function DemoPage() {
 
           {/* Right Panel */}
           <div className="space-y-4">
+            <MarketTicker />
             <div className="border border-gray-700 bg-gray-900 rounded-xl p-4">
               <div className="text-gray-400 text-xs font-bold mb-3 tracking-widest">TRUST SCORE</div>
               <div className="text-5xl font-black text-cyan-400 mb-2">{reputation.trustScore}</div>
