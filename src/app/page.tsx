@@ -56,7 +56,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="max-w-7xl mx-auto px-6 pt-24 pb-20 text-center">
+      <section className="max-w-7xl mx-auto px-6 pt-16 pb-16 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -75,7 +75,7 @@ export default function LandingPage() {
             An AI cannot act unless it proves it is allowed to act.
             Every decision is validated, recorded on Mantle, reviewed by Witness, and contributes to a public reputation score.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
+          <div className="flex gap-4 justify-center flex-wrap mb-6">
             <Link
               href="/create"
               className="px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black tracking-wider rounded-lg transition-colors text-sm"
@@ -94,6 +94,17 @@ export default function LandingPage() {
             >
               LEADERBOARD
             </Link>
+          </div>
+          <div className="flex items-center justify-center gap-6 text-xs text-gray-600">
+            <a
+              href="https://explorer.mantle.xyz/address/0x91606bd2ae6dfe3a82cc60644e75c87e4656f2b5"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-cyan-400 transition-colors flex items-center gap-1"
+            >
+              <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
+              Deployed on Mantle Mainnet · View Contracts →
+            </a>
           </div>
         </motion.div>
       </section>
