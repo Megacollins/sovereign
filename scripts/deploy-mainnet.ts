@@ -33,11 +33,17 @@ async function deployContract(
   bytecode: `0x${string}`,
   abi: unknown[]
 ): Promise<string> {
+  // Get current gas price from network
+  const gasPrice = await publicClient.getGasPrice()
+  console.log(`   Gas Price: ${Number(gasPrice) / 1e9} gwei`)
+
   const hash = await walletClient.deployContract({
     abi,
     bytecode,
     account,
     chain: mantleMainnet,
+    gas: 1500000n,
+    gasPrice: gasPrice * 2n, // 2x current gas price for safety
   })
   console.log(`   TX Hash: ${hash}`)
   console.log(`   Waiting for confirmation...`)
