@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { validateAction, DEMO_ACTIONS, ProposedAction, ValidationResult } from '@/lib/constitutionEngine'
@@ -34,7 +34,7 @@ const STRATEGY_RULES: Record<string, { risk: number; drawdown: number; stablecoi
   rwa: { risk: 4, drawdown: 8, stablecoin: 25, rwa: 50, cap: 40 },
 }
 
-export default function DemoPage() {
+function DemoContent() {
   const searchParams = useSearchParams()
   const sovereignName = searchParams.get('name') || 'Sovereign Alpha'
   const strategy = searchParams.get('strategy') || 'balanced'
@@ -413,5 +413,13 @@ export default function DemoPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function DemoPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">Loading...</div>}>
+      <DemoContent />
+    </Suspense>
   )
 }
