@@ -232,6 +232,30 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Powered By */}
+      <section className="border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 py-10">
+          <div className="text-center mb-6">
+            <div className="text-gray-600 text-xs tracking-widest">POWERED BY THE MANTLE ECOSYSTEM</div>
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-8">
+            {[
+              { name: 'Mantle', role: 'L2 Infrastructure' },
+              { name: 'Bybit', role: 'Market Data' },
+              { name: 'Ondo Finance', role: 'USDY RWA' },
+              { name: 'Mantle LSP', role: 'mETH Staking' },
+              { name: 'ERC-8004', role: 'Agent Identity' },
+              { name: 'Groq', role: 'AI Inference' },
+            ].map((p) => (
+              <div key={p.name} className="text-center">
+                <div className="text-gray-300 text-sm font-bold">{p.name}</div>
+                <div className="text-gray-600 text-xs">{p.role}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Tech Stack */}
       <section className="border-t border-gray-800 bg-gray-900/20">
         <div className="max-w-7xl mx-auto px-6 py-12">
