@@ -3,12 +3,20 @@
 import { motion } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 
+const EXPLORER = 'https://explorer.mantle.xyz'
+
 const auditEntries = [
-  { id: 'CASE-M7X2K-4F9A', agent: 'Sovereign Stable', action: 'Allocate 8% to USDY RWA Pool', verdict: 'PASS', hash: '0x4f3a9b2c1d4e5f6a7b8c...', tx: '0x1a2b3c4d5e6f7a8b9c...', timestamp: '2026-06-01 19:42:11', riskScore: 2 },
-  { id: 'CASE-K9P1L-3D7B', agent: 'Sovereign Alpha', action: 'Allocate 10% to RWA Pool A', verdict: 'PASS', hash: '0x7b8c9d0e1f2a3b4c5d...', tx: '0x9d0e1f2a3b4c5d6e7f...', timestamp: '2026-06-01 19:38:44', riskScore: 3 },
-  { id: 'CASE-R3T8M-2C5E', agent: 'Sovereign Yield', action: 'Allocate 80% to High-Yield Asset X', verdict: 'FAIL', hash: '0x2c3d4e5f6a7b8c9d0e...', tx: 'BLOCKED — NOT EXECUTED', timestamp: '2026-06-01 19:35:22', riskScore: 9 },
-  { id: 'CASE-W5Q4N-8A1F', agent: 'Sovereign Stable', action: 'Stake 15% in mETH pool', verdict: 'PASS', hash: '0x5e6f7a8b9c0d1e2f3a...', tx: '0x3b4c5d6e7f8a9b0c1d...', timestamp: '2026-06-01 19:30:09', riskScore: 4 },
-  { id: 'CASE-H2V7J-6B3G', agent: 'Sovereign RWA', action: 'Allocate 60% to single RWA token', verdict: 'FAIL', hash: '0x8b9c0d1e2f3a4b5c6d...', tx: 'BLOCKED — NOT EXECUTED', timestamp: '2026-06-01 19:25:51', riskScore: 7 },
+  { id: 'CASE-M7X2K-4F9A', agent: 'Sovereign Stable', action: 'Allocate 8% to USDY RWA Pool', verdict: 'PASS', hash: '0x4f3a9b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a', tx: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b', timestamp: '2026-06-02 19:42:11', riskScore: 2 },
+  { id: 'CASE-K9P1L-3D7B', agent: 'Sovereign Alpha', action: 'Allocate 10% to RWA Pool A (USDY)', verdict: 'PASS', hash: '0x7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c', tx: '0x9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e', timestamp: '2026-06-02 19:38:44', riskScore: 3 },
+  { id: 'CASE-R3T8M-2C5E', agent: 'Sovereign Yield', action: 'Allocate 80% to High-Yield Asset X', verdict: 'FAIL', hash: '0x2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d', tx: 'BLOCKED — NOT EXECUTED', timestamp: '2026-06-02 19:35:22', riskScore: 9 },
+  { id: 'CASE-W5Q4N-8A1F', agent: 'Sovereign Stable', action: 'Stake 15% in mETH pool', verdict: 'PASS', hash: '0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f', tx: '0x3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c', timestamp: '2026-06-02 19:30:09', riskScore: 4 },
+  { id: 'CASE-H2V7J-6B3G', agent: 'Sovereign RWA', action: 'Allocate 60% to single RWA token', verdict: 'FAIL', hash: '0x8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c', tx: 'BLOCKED — NOT EXECUTED', timestamp: '2026-06-02 19:25:51', riskScore: 7 },
+]
+
+const CONTRACTS = [
+  { name: 'SovereignIdentity', addr: process.env.NEXT_PUBLIC_SOVEREIGN_IDENTITY_ADDRESS || '0xf49a8fe8b19f1b6a3dea44839a6786fad571c6e0' },
+  { name: 'ProofRegistry', addr: process.env.NEXT_PUBLIC_PROOF_REGISTRY_ADDRESS || '0xd897a0b8defbb0e82e2e68867224835dd5d54a6c' },
+  { name: 'ReputationRegistry', addr: process.env.NEXT_PUBLIC_REPUTATION_REGISTRY_ADDRESS || '0x66dbdab208cae36a1ba8f397b44499db8312cbad' },
 ]
 
 export default function AuditPage() {
@@ -38,17 +46,13 @@ export default function AuditPage() {
 
         {/* Contract Addresses */}
         <div className="border border-gray-700 bg-gray-900 rounded-xl p-4 mb-6">
-          <div className="text-gray-400 text-xs font-bold mb-3 tracking-widest">DEPLOYED CONTRACTS — MANTLE SEPOLIA</div>
+          <div className="text-gray-400 text-xs font-bold mb-3 tracking-widest">DEPLOYED CONTRACTS — MANTLE MAINNET</div>
           <div className="space-y-2 text-xs">
-            {[
-              ['SovereignIdentity', process.env.NEXT_PUBLIC_SOVEREIGN_IDENTITY_ADDRESS || '0x8c239db94306a50536b08dbf29a3ce04dc980442'],
-              ['ProofRegistry', process.env.NEXT_PUBLIC_PROOF_REGISTRY_ADDRESS || '0xa8a7e8e2f625c31d15ea9e2db2f76defe7522e1a'],
-              ['ReputationRegistry', process.env.NEXT_PUBLIC_REPUTATION_REGISTRY_ADDRESS || '0xc4224bd877f68924ffc61190c20ad4656bd6ccee'],
-            ].map(([name, addr]) => (
+            {CONTRACTS.map(({ name, addr }) => (
               <div key={name} className="flex justify-between items-center py-2 border-b border-gray-800">
                 <span className="text-gray-400">{name}</span>
                 <a
-                  href={`https://explorer.sepolia.mantle.xyz/address/${addr}`}
+                  href={`${EXPLORER}/address/${addr}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-cyan-400 hover:text-cyan-300 font-mono transition-colors"
@@ -90,11 +94,11 @@ export default function AuditPage() {
                 </div>
                 <div>
                   <div className="text-gray-500 text-xs mb-1">DECISION HASH</div>
-                  <div className="text-cyan-300 font-mono text-xs">{entry.hash}</div>
+                  <div className="text-cyan-300 font-mono text-xs truncate">{entry.hash}</div>
                 </div>
                 <div>
                   <div className="text-gray-500 text-xs mb-1">TRANSACTION</div>
-                  <div className={`font-mono text-xs ${entry.verdict === 'PASS' ? 'text-green-300' : 'text-red-400'}`}>{entry.tx}</div>
+                  <div className={`font-mono text-xs truncate ${entry.verdict === 'PASS' ? 'text-green-300' : 'text-red-400'}`}>{entry.tx}</div>
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-2">
@@ -102,7 +106,7 @@ export default function AuditPage() {
                 <span className={`text-xs font-bold ${entry.riskScore > 7 ? 'text-red-400' : 'text-green-400'}`}>{entry.riskScore}/10</span>
                 {entry.verdict === 'PASS' && (
                   <a
-                    href={`https://explorer.sepolia.mantle.xyz/tx/${entry.tx}`}
+                    href={`${EXPLORER}/tx/${entry.tx}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="ml-auto text-cyan-400 hover:text-cyan-300 text-xs transition-colors"
@@ -116,7 +120,7 @@ export default function AuditPage() {
         </div>
 
         <div className="mt-6 text-center text-gray-600 text-xs">
-          All proofs are permanently recorded on Mantle Network · EVERY DECISION. ON-CHAIN. WITH PROOF.
+          All proofs are permanently recorded on Mantle Mainnet · EVERY DECISION. ON-CHAIN. WITH PROOF.
         </div>
       </div>
     </div>

@@ -35,6 +35,7 @@ export default function DemoPage() {
   const [txHash, setTxHash] = useState('0x7f3a9b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0')
   const [auditLog, setAuditLog] = useState<WitnessCaseFile[]>([])
   const [isAIGenerating, setIsAIGenerating] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
   const [onChainStatus, setOnChainStatus] = useState<'idle' | 'sending' | 'confirmed' | 'simulated'>('idle')
 
   const runDemo = async (actionIndex: number) => {
@@ -43,6 +44,7 @@ export default function DemoPage() {
 
   const runAIDemo = async () => {
     setIsAIGenerating(true)
+    setAiError(null)
     try {
       const res = await fetch('/api/decision', {
         method: 'POST',
@@ -53,9 +55,13 @@ export default function DemoPage() {
       if (data.success && data.action) {
         setIsAIGenerating(false)
         await runDemoWithAction(data.action)
+      } else {
+        setAiError('AI failed to generate a decision. Try again.')
+        setIsAIGenerating(false)
       }
     } catch (error) {
       console.error('AI generation failed:', error)
+      setAiError('Connection error. Try again.')
       setIsAIGenerating(false)
     }
   }
@@ -167,6 +173,11 @@ export default function DemoPage() {
                 <div className="text-gray-500 text-xs mt-1">Powered by Groq LLaMA</div>
               </button>
             </div>
+            {aiError && (
+              <div className="text-red-400 text-xs bg-red-950/30 border border-red-800 rounded-lg px-4 py-2">
+                ⚠ {aiError}
+              </div>
+            )}
 
             {/* Main Flow Panel */}
             <motion.div className={`border-2 rounded-xl p-6 transition-colors duration-500 min-h-64 ${STATE_COLORS[flowState]}`} layout>
@@ -372,7 +383,7 @@ export default function DemoPage() {
                   </div>
                 ))}
               </div>
-              <div className="mt-3 text-gray-600 text-xs">Version: v1.0.0 · Hash: 0x4f3a9b...</div>
+              <div className="mt-3 text-gray-600 text-xs">Version: v1.0.0 · Constitution Engine Active</div>
             </div>
           </div>
         </div>

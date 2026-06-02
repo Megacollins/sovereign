@@ -24,9 +24,22 @@ const defaultRules: Rule[] = [
 ]
 
 export default function ConstitutionPage() {
-  const [rules, setRules] = useState<Rule[]>(defaultRules)
+  const [rules, setRules] = useState<Rule[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sovereign-constitution')
+      if (saved) {
+        try { return JSON.parse(saved) } catch { return defaultRules }
+      }
+    }
+    return defaultRules
+  })
   const [saved, setSaved] = useState(false)
-  const [constitutionName, setConstitutionName] = useState('Sovereign Alpha Constitution')
+  const [constitutionName, setConstitutionName] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sovereign-constitution-name') || 'Sovereign Alpha Constitution'
+    }
+    return 'Sovereign Alpha Constitution'
+  })
 
   const updateRule = (id: string, value: number) => {
     setRules((prev) => prev.map((r) => r.id === id ? { ...r, value } : r))
@@ -34,18 +47,25 @@ export default function ConstitutionPage() {
   }
 
   const handleSave = () => {
+    localStorage.setItem('sovereign-constitution', JSON.stringify(rules))
+    localStorage.setItem('sovereign-constitution-name', constitutionName)
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
 
   const getConstitutionHash = () => {
     const str = rules.map((r) => `${r.id}:${r.value}`).join('|')
-    let hash = 0
+    // Better hash using multiple rounds
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57
     for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i)
-      hash = hash & hash
+      const ch = str.charCodeAt(i)
+      h1 = Math.imul(h1 ^ ch, 2654435761)
+      h2 = Math.imul(h2 ^ ch, 1597334677)
     }
-    return '0x' + Math.abs(hash).toString(16).padStart(64, '0').slice(0, 64)
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+    const combined = (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(16)
+    return '0x' + combined.padStart(64, '0').slice(0, 64)
   }
 
   return (

@@ -54,15 +54,33 @@ Respond with ONLY a valid JSON object in this exact format:
     }
 
     const data = await response.json()
-    const content = data.choices[0].message.content
+
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error('No choices returned from Groq API')
+    }
+
+    const content = data.choices[0]?.message?.content
+    if (!content) throw new Error('Empty content from Groq API')
 
     // Extract JSON from response — find first complete JSON object
     const start = content.indexOf('{')
     const end = content.lastIndexOf('}')
-    if (start === -1 || end === -1) throw new Error('No JSON in response')
+    if (start === -1 || end === -1) throw new Error('No JSON found in response')
     const jsonStr = content.slice(start, end + 1)
 
-    const action = JSON.parse(jsonStr)
+    let action
+    try {
+      action = JSON.parse(jsonStr)
+    } catch {
+      throw new Error('Failed to parse JSON from AI response')
+    }
+
+    // Ensure all numeric fields are numbers not strings
+    action.allocationPercent = Number(action.allocationPercent) || 10
+    action.riskScore = Number(action.riskScore) || 5
+    action.estimatedDrawdown = Number(action.estimatedDrawdown) || 5
+    action.stablecoinReserveAfter = Number(action.stablecoinReserveAfter) || 35
+    action.rwaAllocationAfter = Number(action.rwaAllocationAfter) || 25
     action.id = `action-ai-${Date.now()}`
 
     return NextResponse.json({ success: true, action })
