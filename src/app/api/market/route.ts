@@ -61,23 +61,24 @@ const ASSET_NAMES: Record<string, string> = {
 
 export async function GET() {
   try {
-    // Fetch tickers from Bybit
-    const response = await fetch(
-      `${BYBIT_BASE}/tickers?category=spot&symbol=`,
-      { next: { revalidate: 30 } } // cache for 30 seconds
+    // Fetch each symbol individually for reliability
+    const tickerPromises = TRACKED_SYMBOLS.map((symbol) =>
+      fetch(`${BYBIT_BASE}/tickers?category=spot&symbol=${symbol}`)
+        .then((r) => r.json())
+        .then((d) => d.result?.list?.[0] as BybitTicker | undefined)
+        .catch(() => undefined)
     )
 
-    if (!response.ok) throw new Error('Bybit API failed')
+    const tickerResults = await Promise.all(tickerPromises)
 
-    const data = await response.json()
+    // Map results to symbols
+    const tickerMap: Record<string, BybitTicker | undefined> = {}
+    TRACKED_SYMBOLS.forEach((symbol, i) => {
+      tickerMap[symbol] = tickerResults[i]
+    })
 
-    if (data.retCode !== 0) throw new Error(data.retMsg || 'Bybit error')
-
-    const tickers: BybitTicker[] = data.result?.list || []
-
-    // Filter to our tracked symbols
     const assets: AssetData[] = TRACKED_SYMBOLS.map((symbol) => {
-      const ticker = tickers.find((t) => t.symbol === symbol)
+      const ticker = tickerMap[symbol]
 
       if (!ticker) {
         // Fallback data if symbol not found
@@ -139,9 +140,9 @@ export async function GET() {
     return NextResponse.json({
       success: false,
       assets: [
-        { symbol: 'MNTUSDT', name: 'MNT (Mantle)', price: 0.82, change24h: -1.2, high24h: 0.85, low24h: 0.80, volume24h: 1200000, riskScore: 4, volatility: 6.1 },
-        { symbol: 'ETHUSDT', name: 'ETH', price: 3420, change24h: 2.1, high24h: 3480, low24h: 3380, volume24h: 890000, riskScore: 5, volatility: 2.9 },
-        { symbol: 'BTCUSDT', name: 'BTC', price: 67200, change24h: 0.8, high24h: 67800, low24h: 66900, volume24h: 2100000, riskScore: 3, volatility: 1.3 },
+        { symbol: 'MNTUSDT', name: 'MNT (Mantle)', price: 0.74, change24h: -0.8, high24h: 0.76, low24h: 0.72, volume24h: 1200000, riskScore: 4, volatility: 5.4 },
+        { symbol: 'ETHUSDT', name: 'ETH', price: 2580, change24h: 1.2, high24h: 2620, low24h: 2540, volume24h: 890000, riskScore: 4, volatility: 3.1 },
+        { symbol: 'BTCUSDT', name: 'BTC', price: 103000, change24h: 0.5, high24h: 104000, low24h: 102000, volume24h: 2100000, riskScore: 3, volatility: 1.9 },
       ],
       marketSentiment: 'NEUTRAL',
       avgRiskScore: 4,
