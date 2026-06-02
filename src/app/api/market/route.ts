@@ -63,10 +63,17 @@ export async function GET() {
   try {
     // Fetch each symbol individually for reliability
     const tickerPromises = TRACKED_SYMBOLS.map((symbol) =>
-      fetch(`${BYBIT_BASE}/tickers?category=spot&symbol=${symbol}`)
+      fetch(`${BYBIT_BASE}/tickers?category=spot&symbol=${symbol}`, {
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store',
+      })
         .then((r) => r.json())
-        .then((d) => d.result?.list?.[0] as BybitTicker | undefined)
-        .catch(() => undefined)
+        .then((d) => {
+          const item = d.result?.list?.[0]
+          console.log(`Bybit ${symbol}:`, JSON.stringify(item))
+          return item as BybitTicker | undefined
+        })
+        .catch((e) => { console.error(`Bybit fetch failed for ${symbol}:`, e); return undefined })
     )
 
     const tickerResults = await Promise.all(tickerPromises)
@@ -77,29 +84,35 @@ export async function GET() {
       tickerMap[symbol] = tickerResults[i]
     })
 
+    const FALLBACK_PRICES: Record<string, number> = {
+      MNTUSDT: 0.74,
+      ETHUSDT: 1925,
+      BTCUSDT: 103000,
+    }
+
     const assets: AssetData[] = TRACKED_SYMBOLS.map((symbol) => {
       const ticker = tickerMap[symbol]
 
-      if (!ticker) {
-        // Fallback data if symbol not found
+      const price = ticker?.lastPrice ? parseFloat(ticker.lastPrice) : FALLBACK_PRICES[symbol] || 0
+      const change24h = ticker?.price24hPcnt ? parseFloat(ticker.price24hPcnt) * 100 : 0
+      const high24h = ticker?.highPrice24h ? parseFloat(ticker.highPrice24h) : price * 1.02
+      const low24h = ticker?.lowPrice24h ? parseFloat(ticker.lowPrice24h) : price * 0.98
+      const volume24h = ticker?.volume24h ? parseFloat(ticker.volume24h) : 0
+
+      if (!ticker || price === 0) {
         return {
           symbol,
           name: ASSET_NAMES[symbol] || symbol,
-          price: 0,
+          price: FALLBACK_PRICES[symbol] || 0,
           change24h: 0,
-          high24h: 0,
-          low24h: 0,
+          high24h: (FALLBACK_PRICES[symbol] || 0) * 1.02,
+          low24h: (FALLBACK_PRICES[symbol] || 0) * 0.98,
           volume24h: 0,
           riskScore: 5,
-          volatility: 0,
+          volatility: 2,
         }
       }
 
-      const price = parseFloat(ticker.lastPrice)
-      const change24h = parseFloat(ticker.price24hPcnt) * 100
-      const high24h = parseFloat(ticker.highPrice24h)
-      const low24h = parseFloat(ticker.lowPrice24h)
-      const volume24h = parseFloat(ticker.volume24h)
       const volatility = price > 0 ? ((high24h - low24h) / price) * 100 : 0
       const riskScore = calculateRiskScore(change24h, high24h, low24h, price)
 
@@ -141,7 +154,7 @@ export async function GET() {
       success: false,
       assets: [
         { symbol: 'MNTUSDT', name: 'MNT (Mantle)', price: 0.74, change24h: -0.8, high24h: 0.76, low24h: 0.72, volume24h: 1200000, riskScore: 4, volatility: 5.4 },
-        { symbol: 'ETHUSDT', name: 'ETH', price: 2580, change24h: 1.2, high24h: 2620, low24h: 2540, volume24h: 890000, riskScore: 4, volatility: 3.1 },
+        { symbol: 'ETHUSDT', name: 'ETH', price: 1925, change24h: -3.2, high24h: 2010, low24h: 1889, volume24h: 890000, riskScore: 5, volatility: 6.3 },
         { symbol: 'BTCUSDT', name: 'BTC', price: 103000, change24h: 0.5, high24h: 104000, low24h: 102000, volume24h: 2100000, riskScore: 3, volatility: 1.9 },
       ],
       marketSentiment: 'NEUTRAL',
