@@ -25,13 +25,23 @@ const features = [
     title: 'Reputation Through Trust',
     description: 'Sovereigns earn reputation through consistent, constitutional behavior — not just profit.',
   },
+  {
+    icon: '🏛️',
+    title: 'Real-World Asset Focus',
+    description: 'Built for Mantle\'s RWA ecosystem. Governs allocations to USDY, mETH, fBTC with live Bybit market data powering risk scores.',
+  },
+  {
+    icon: '🤖',
+    title: 'AI-Native Identity',
+    description: 'Every Sovereign receives a permanent ERC-8004 identity NFT on Mantle — establishing verifiable on-chain agent reputation.',
+  },
 ]
 
 const stats = [
-  { value: '3', label: 'Contracts Deployed' },
+  { value: '3', label: 'Mainnet Contracts' },
   { value: '5', label: 'Constitutional Rules' },
   { value: '100%', label: 'Decisions Auditable' },
-  { value: 'Mantle', label: 'Network' },
+  { value: 'ERC-8004', label: 'Identity Standard' },
 ]
 
 const sovereigns = [
@@ -142,7 +152,7 @@ export default function LandingPage() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-black tracking-widest text-white mb-3">CORE FEATURES</h2>
         </div>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
@@ -222,11 +232,41 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Tech Stack */}
+      <section className="border-t border-gray-800 bg-gray-900/20">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-black tracking-widest text-gray-400 mb-2">BUILT WITH</h2>
+          </div>
+          <div className="flex flex-wrap justify-center gap-4">
+            {[
+              { name: 'Mantle Network', desc: 'L2 Blockchain' },
+              { name: 'ERC-8004', desc: 'Agent Identity' },
+              { name: 'Bybit API', desc: 'Live Market Data' },
+              { name: 'Groq LLaMA', desc: 'AI Decisions' },
+              { name: 'Next.js', desc: 'Frontend' },
+              { name: 'Solidity', desc: 'Smart Contracts' },
+              { name: 'Viem', desc: 'Blockchain Client' },
+              { name: 'Framer Motion', desc: 'Animations' },
+            ].map((tech) => (
+              <div key={tech.name} className="border border-gray-700 bg-gray-900 rounded-lg px-4 py-2 text-center">
+                <div className="text-white text-xs font-bold">{tech.name}</div>
+                <div className="text-gray-600 text-xs">{tech.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-gray-800 py-6">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-gray-600">
           <div>SOVEREIGN · MANTLE TURING TEST HACKATHON 2026</div>
-          <div>CONTRACTS ON MANTLE SEPOLIA TESTNET</div>
+          <div className="flex gap-6">
+            <a href="https://github.com/Megacollins/sovereign" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors">GitHub</a>
+            <a href="https://dorahacks.io/hackathon/mantleturingtesthackathon2026/detail" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors">DoraHacks</a>
+            <span>CONTRACTS ON MANTLE MAINNET</span>
+          </div>
         </div>
       </footer>
     </div>
