@@ -3,14 +3,14 @@ import { createPublicClient, createWalletClient, custom, http, defineChain } fro
 import { ValidationResult } from './constitutionEngine'
 
 export const mantleTestnet = defineChain({
-  id: 5003,
-  name: 'Mantle Sepolia',
+  id: 5000,
+  name: 'Mantle',
   nativeCurrency: { name: 'MNT', symbol: 'MNT', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://rpc.sepolia.mantle.xyz'] },
+    default: { http: ['https://rpc.mantle.xyz'] },
   },
   blockExplorers: {
-    default: { name: 'Explorer', url: 'https://explorer.sepolia.mantle.xyz' },
+    default: { name: 'Explorer', url: 'https://explorer.mantle.xyz' },
   },
 })
 
@@ -96,18 +96,18 @@ export async function recordDecisionOnChain(
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x138B' }], // 5003 in hex
+        params: [{ chainId: '0x1388' }], // 5000 in hex
       })
     } catch {
       // Add network if not present
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{
-          chainId: '0x138B',
-          chainName: 'Mantle Sepolia',
+          chainId: '0x1388',
+          chainName: 'Mantle',
           nativeCurrency: { name: 'MNT', symbol: 'MNT', decimals: 18 },
-          rpcUrls: ['https://rpc.sepolia.mantle.xyz'],
-          blockExplorerUrls: ['https://explorer.sepolia.mantle.xyz'],
+          rpcUrls: ['https://rpc.mantle.xyz'],
+          blockExplorerUrls: ['https://explorer.mantle.xyz'],
         }],
       })
     }
