@@ -14,9 +14,9 @@ const auditEntries = [
 ]
 
 const CONTRACTS = [
-  { name: 'SovereignIdentity', addr: process.env.NEXT_PUBLIC_SOVEREIGN_IDENTITY_ADDRESS || '0xf49a8fe8b19f1b6a3dea44839a6786fad571c6e0' },
-  { name: 'ProofRegistry', addr: process.env.NEXT_PUBLIC_PROOF_REGISTRY_ADDRESS || '0xd897a0b8defbb0e82e2e68867224835dd5d54a6c' },
-  { name: 'ReputationRegistry', addr: process.env.NEXT_PUBLIC_REPUTATION_REGISTRY_ADDRESS || '0x66dbdab208cae36a1ba8f397b44499db8312cbad' },
+  { name: 'SovereignIdentity (ERC-8004)', addr: process.env.NEXT_PUBLIC_SOVEREIGN_IDENTITY_ADDRESS || '0x91606bd2ae6dfe3a82cc60644e75c87e4656f2b5' },
+  { name: 'ProofRegistry', addr: process.env.NEXT_PUBLIC_PROOF_REGISTRY_ADDRESS || '0xf4d31a74fa4881083ccfcb0cbe2d89f98b07f5bd' },
+  { name: 'ReputationRegistry', addr: process.env.NEXT_PUBLIC_REPUTATION_REGISTRY_ADDRESS || '0xa2a19f470c62119ceb93ef716068b0ed81aebbd0' },
 ]
 
 export default function AuditPage() {

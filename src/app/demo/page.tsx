@@ -8,6 +8,7 @@ import { createInitialReputation, updateReputation, SovereignReputation } from '
 import { recordDecisionOnChain } from '@/lib/contracts'
 import Navbar from '@/components/Navbar'
 import MarketTicker from '@/components/MarketTicker'
+import RWAPools from '@/components/RWAPools'
 
 type FlowState = 'IDLE' | 'THINKING' | 'EVALUATING' | 'REJECTED' | 'APPROVED' | 'RECORDING' | 'RECORDED' | 'WITNESS' | 'REPUTATION'
 
@@ -387,6 +388,7 @@ export default function DemoPage() {
               </div>
               <div className="mt-3 text-gray-600 text-xs">Version: v1.0.0 · Constitution Engine Active</div>
             </div>
+            <RWAPools />
           </div>
         </div>
       </div>

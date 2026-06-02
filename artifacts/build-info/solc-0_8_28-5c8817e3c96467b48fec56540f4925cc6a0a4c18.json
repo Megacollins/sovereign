@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-5c8817e3c96467b48fec56540f4925cc6a0a4c18",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/SovereignIdentity.sol": "project/contracts/SovereignIdentity.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/SovereignIdentity.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\n/// @title SovereignIdentity\n/// @notice ERC-8004 compliant on-chain identity registry for autonomous AI financial institutions\n/// @dev Implements ERC-8004 agent identity standard with registration, metadata, and wallet management\n\ncontract SovereignIdentity {\n\n    // ─── Events (ERC-8004 compliant) ──────────────────────────────────────────\n    event Registered(\n        uint256 indexed agentId,\n        address indexed owner,\n        string agentURI,\n        uint256 timestamp\n    );\n\n    event URIUpdated(\n        uint256 indexed agentId,\n        string oldURI,\n        string newURI,\n        uint256 timestamp\n    );\n\n    event MetadataSet(\n        uint256 indexed agentId,\n        string key,\n        string value,\n        uint256 timestamp\n    );\n\n    event ConstitutionUpdated(\n        uint256 indexed agentId,\n        bytes32 oldHash,\n        bytes32 newHash,\n        uint256 version,\n        uint256 timestamp\n    );\n\n    event AgentWalletSet(\n        uint256 indexed agentId,\n        address wallet,\n        uint256 timestamp\n    );\n\n    // ─── Structs ──────────────────────────────────────────────────────────────\n    struct MetadataEntry {\n        string key;\n        string value;\n    }\n\n    struct Agent {\n        uint256 id;\n        address owner;\n        string agentURI;\n        bytes32 constitutionHash;\n        uint256 constitutionVersion;\n        address agentWallet;\n        uint256 createdAt;\n        bool active;\n    }\n\n    // ─── State ────────────────────────────────────────────────────────────────\n    uint256 public nextAgentId = 1;\n    mapping(uint256 => Agent) public agents;\n    mapping(uint256 => mapping(string => string)) public agentMetadata;\n    mapping(address => uint256[]) public ownerToAgents;\n\n    // ─── ERC-8004 Core Functions ──────────────────────────────────────────────\n\n    /// @notice Register a new AI agent identity (ERC-8004)\n    function register(string calldata agentURI) external returns (uint256 agentId) {\n        agentId = _createAgent(msg.sender, agentURI, bytes32(0));\n    }\n\n    /// @notice Register a new AI agent identity with metadata (ERC-8004)\n    function registerWithMetadata(\n        string calldata agentURI,\n        MetadataEntry[] calldata metadata\n    ) external returns (uint256 agentId) {\n        agentId = _createAgent(msg.sender, agentURI, bytes32(0));\n        for (uint256 i = 0; i < metadata.length; i++) {\n            agentMetadata[agentId][metadata[i].key] = metadata[i].value;\n            emit MetadataSet(agentId, metadata[i].key, metadata[i].value, block.timestamp);\n        }\n    }\n\n    /// @notice Register a Sovereign with constitution hash\n    function registerSovereign(\n        string calldata agentURI,\n        bytes32 constitutionHash\n    ) external returns (uint256 agentId) {\n        agentId = _createAgent(msg.sender, agentURI, constitutionHash);\n    }\n\n    /// @notice Internal agent creation\n    function _createAgent(\n        address owner,\n        string calldata agentURI,\n        bytes32 constitutionHash\n    ) internal returns (uint256 agentId) {\n        agentId = nextAgentId++;\n\n        agents[agentId] = Agent({\n            id: agentId,\n            owner: owner,\n            agentURI: agentURI,\n            constitutionHash: constitutionHash,\n            constitutionVersion: 1,\n            agentWallet: address(0),\n            createdAt: block.timestamp,\n            active: true\n        });\n\n        ownerToAgents[owner].push(agentId);\n\n        emit Registered(agentId, owner, agentURI, block.timestamp);\n    }\n\n    /// @notice Update agent URI (ERC-8004)\n    function setAgentURI(uint256 agentId, string calldata newURI) external {\n        Agent storage agent = agents[agentId];\n        require(agent.owner == msg.sender, \"Not agent owner\");\n        require(agent.active, \"Agent not active\");\n        string memory oldURI = agent.agentURI;\n        agent.agentURI = newURI;\n        emit URIUpdated(agentId, oldURI, newURI, block.timestamp);\n    }\n\n    /// @notice Set metadata for an agent (ERC-8004)\n    function setMetadata(\n        uint256 agentId,\n        string calldata key,\n        string calldata value\n    ) external {\n        require(agents[agentId].owner == msg.sender, \"Not agent owner\");\n        agentMetadata[agentId][key] = value;\n        emit MetadataSet(agentId, key, value, block.timestamp);\n    }\n\n    /// @notice Get metadata value for an agent (ERC-8004)\n    function getMetadata(\n        uint256 agentId,\n        string calldata key\n    ) external view returns (string memory) {\n        return agentMetadata[agentId][key];\n    }\n\n    /// @notice Set agent wallet address (ERC-8004)\n    function setAgentWallet(uint256 agentId, address wallet) external {\n        require(agents[agentId].owner == msg.sender, \"Not agent owner\");\n        agents[agentId].agentWallet = wallet;\n        emit AgentWalletSet(agentId, wallet, block.timestamp);\n    }\n\n    /// @notice Get agent wallet address (ERC-8004)\n    function getAgentWallet(uint256 agentId) external view returns (address) {\n        return agents[agentId].agentWallet;\n    }\n\n    /// @notice Unset agent wallet (ERC-8004)\n    function unsetAgentWallet(uint256 agentId) external {\n        require(agents[agentId].owner == msg.sender, \"Not agent owner\");\n        agents[agentId].agentWallet = address(0);\n    }\n\n    /// @notice Update constitution hash\n    function updateConstitution(\n        uint256 agentId,\n        bytes32 newConstitutionHash\n    ) external {\n        Agent storage agent = agents[agentId];\n        require(agent.owner == msg.sender, \"Not agent owner\");\n        require(agent.active, \"Agent not active\");\n\n        bytes32 oldHash = agent.constitutionHash;\n        agent.constitutionHash = newConstitutionHash;\n        agent.constitutionVersion++;\n\n        emit ConstitutionUpdated(\n            agentId,\n            oldHash,\n            newConstitutionHash,\n            agent.constitutionVersion,\n            block.timestamp\n        );\n    }\n\n    // ─── View Functions ────────────────────────────────────────────────────────\n\n    /// @notice Get agent URI (ERC-8004)\n    function getAgentURI(uint256 agentId) external view returns (string memory) {\n        return agents[agentId].agentURI;\n    }\n\n    /// @notice Get full agent details\n    function getAgent(uint256 agentId) external view returns (Agent memory) {\n        return agents[agentId];\n    }\n\n    /// @notice Get all agent IDs owned by an address\n    function getAgentsByOwner(address owner) external view returns (uint256[] memory) {\n        return ownerToAgents[owner];\n    }\n\n    /// @notice Check if agent exists\n    function agentExists(uint256 agentId) external view returns (bool) {\n        return agents[agentId].createdAt > 0;\n    }\n\n    /// @notice Get identity registry address (ERC-8004 compatibility)\n    function getIdentityRegistry() external view returns (address) {\n        return address(this);\n    }\n}\n"
+      }
+    }
+  }
+}
