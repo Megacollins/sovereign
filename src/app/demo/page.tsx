@@ -164,7 +164,7 @@ function DemoContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 space-y-4">
             {/* Action Buttons */}
             <div className="grid grid-cols-3 gap-3">
@@ -352,7 +352,7 @@ function DemoContent() {
           </div>
 
           {/* Right Panel */}
-          <div className="space-y-4">
+          <div className="space-y-4 sticky top-4 max-h-screen overflow-y-auto pb-4">
             <MarketTicker />
             <div className="border border-gray-700 bg-gray-900 rounded-xl p-4">
               <div className="text-gray-400 text-xs font-bold mb-3 tracking-widest">TRUST SCORE</div>
@@ -411,6 +411,7 @@ function DemoContent() {
             <RWAPools />
           </div>
         </div>
+
       </div>
     </div>
   )
