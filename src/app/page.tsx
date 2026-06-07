@@ -294,13 +294,125 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-6">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center text-xs text-gray-600">
-          <div>SOVEREIGN · MANTLE TURING TEST HACKATHON 2026</div>
-          <div className="flex gap-6">
-            <a href="https://github.com/Megacollins/sovereign" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors">GitHub</a>
-            <a href="https://dorahacks.io/hackathon/mantleturingtesthackathon2026/detail" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400 transition-colors">DoraHacks</a>
-            <span>CONTRACTS ON MANTLE MAINNET</span>
+      <footer className="border-t border-gray-800 bg-gray-950">
+        {/* Main footer content */}
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+
+            {/* Brand */}
+            <div className="md:col-span-2">
+              <div className="text-2xl font-black tracking-widest text-white mb-3">SOVEREIGN</div>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-sm">
+                The first constitutional accountability framework for autonomous AI financial institutions.
+                Every decision validated. Every proof on-chain. Every Sovereign accountable.
+              </p>
+              <div className="inline-flex items-center gap-2 border border-cyan-800 bg-cyan-950/30 text-cyan-400 text-xs px-4 py-2 rounded-full tracking-widest">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block"></span>
+                LIVE ON MANTLE MAINNET
+              </div>
+            </div>
+
+            {/* Navigate */}
+            <div>
+              <div className="text-gray-400 text-xs font-bold tracking-widest mb-4">NAVIGATE</div>
+              <ul className="space-y-3">
+                {[
+                  { label: 'Live Demo', href: '/demo' },
+                  { label: 'Leaderboard', href: '/leaderboard' },
+                  { label: 'Constitution', href: '/constitution' },
+                  { label: 'Audit Terminal', href: '/audit' },
+                  { label: 'Create Sovereign', href: '/create' },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-gray-500 hover:text-white text-sm transition-colors">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Contracts */}
+            <div>
+              <div className="text-gray-400 text-xs font-bold tracking-widest mb-4">CONTRACTS</div>
+              <ul className="space-y-3">
+                {[
+                  { label: 'SovereignIdentity', addr: '0x91606b...f2b5' },
+                  { label: 'ProofRegistry', addr: '0xf4d31a...f5bd' },
+                  { label: 'ReputationRegistry', addr: '0xa2a19f...bd0' },
+                ].map((c) => (
+                  <li key={c.label}>
+                    <a
+                      href={`https://explorer.mantle.xyz/address/${c.addr}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-500 hover:text-cyan-400 text-sm transition-colors"
+                    >
+                      <div className="text-gray-300 text-xs font-bold mb-0.5">{c.label}</div>
+                      <div className="font-mono text-xs">{c.addr}</div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-800">
+          <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-gray-600 text-xs tracking-wider">
+              © 2026 SOVEREIGN · MANTLE TURING TEST HACKATHON · BUILT ON MANTLE NETWORK
+            </div>
+            <div className="flex items-center gap-6 text-xs">
+              <a
+                href="https://github.com/Megacollins/sovereign"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-white transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                GitHub
+              </a>
+              <a
+                href="https://dorahacks.io/hackathon/mantleturingtesthackathon2026/detail"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                DoraHacks
+              </a>
+              <a
+                href="https://explorer.mantle.xyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-cyan-400 transition-colors"
+              >
+                Mantle Explorer
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-white transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>
+                </svg>
+                Twitter
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom tagline */}
+        <div className="border-t border-gray-900 bg-black/40">
+          <div className="max-w-7xl mx-auto px-6 py-3 text-center">
+            <span className="text-gray-700 text-xs tracking-widest font-bold">
+              AN AI CANNOT ACT UNLESS IT PROVES IT IS ALLOWED TO ACT · EVERY DECISION. ON-CHAIN. WITH PROOF.
+            </span>
           </div>
         </div>
       </footer>
