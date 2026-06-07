@@ -337,19 +337,19 @@ export default function LandingPage() {
               <div className="text-gray-400 text-xs font-bold tracking-widest mb-4">CONTRACTS</div>
               <ul className="space-y-3">
                 {[
-                  { label: 'SovereignIdentity', addr: '0x91606b...f2b5' },
-                  { label: 'ProofRegistry', addr: '0xf4d31a...f5bd' },
-                  { label: 'ReputationRegistry', addr: '0xa2a19f...bd0' },
+                  { label: 'SovereignIdentity', full: '0x91606bd2ae6dfe3a82cc60644e75c87e4656f2b5', short: '0x91606b...f2b5' },
+                  { label: 'ProofRegistry', full: '0xf4d31a74fa4881083ccfcb0cbe2d89f98b07f5bd', short: '0xf4d31a...f5bd' },
+                  { label: 'ReputationRegistry', full: '0xa2a19f470c62119ceb93ef716068b0ed81aebbd0', short: '0xa2a19f...bd0' },
                 ].map((c) => (
                   <li key={c.label}>
                     <a
-                      href={`https://explorer.mantle.xyz/address/${c.addr}`}
+                      href={`https://explorer.mantle.xyz/address/${c.full}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-500 hover:text-cyan-400 text-sm transition-colors"
                     >
                       <div className="text-gray-300 text-xs font-bold mb-0.5">{c.label}</div>
-                      <div className="font-mono text-xs">{c.addr}</div>
+                      <div className="font-mono text-xs">{c.short}</div>
                     </a>
                   </li>
                 ))}
