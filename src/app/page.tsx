@@ -1,418 +1,359 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 
-const features = [
-  {
-    icon: '⚖️',
-    title: 'Constitutional Governance',
-    description: 'Every Sovereign operates under a programmable constitution. Actions that violate the rules are blocked before execution.',
-  },
-  {
-    icon: '🔗',
-    title: 'On-Chain Proof',
-    description: 'Every decision generates a verifiable proof recorded permanently on Mantle. Nothing is hidden. Everything is auditable.',
-  },
-  {
-    icon: '👁',
-    title: 'Witness Accountability',
-    description: 'An independent AI accountability layer reviews every decision and generates a permanent case file.',
-  },
-  {
-    icon: '📈',
-    title: 'Reputation Through Trust',
-    description: 'Sovereigns earn reputation through consistent, constitutional behavior — not just profit.',
-  },
-  {
-    icon: '🏛️',
-    title: 'Real-World Asset Focus',
-    description: 'Built for Mantle\'s RWA ecosystem. Governs allocations to USDY, mETH, fBTC with live Bybit market data powering risk scores.',
-  },
-  {
-    icon: '🤖',
-    title: 'AI-Native Identity',
-    description: 'Every Sovereign receives a permanent ERC-8004 identity NFT on Mantle — establishing verifiable on-chain agent reputation.',
-  },
+const CONTRACTS = {
+  identity: process.env.NEXT_PUBLIC_SOVEREIGN_IDENTITY_ADDRESS || '0x91606bd2ae6dfe3a82cc60644e75c87e4656f2b5',
+  proof: process.env.NEXT_PUBLIC_PROOF_REGISTRY_ADDRESS || '0xf4d31a74fa4881083ccfcb0cbe2d89f98b07f5bd',
+  reputation: process.env.NEXT_PUBLIC_REPUTATION_REGISTRY_ADDRESS || '0xa2a19f470c62119ceb93ef716068b0ed81aebbd0',
+}
+const EXPLORER = 'https://explorer.mantle.xyz'
+
+// ─── Live hero pipeline simulation ───────────────────────────────────────────
+type Phase = 'PROPOSE' | 'VALIDATE' | 'REJECTED' | 'APPROVED' | 'PROOF' | 'TRUST'
+
+const HERO_SCENARIOS = [
+  { action: 'Allocate 80% to High-Yield Asset X', risk: 9, limit: 7, rejected: true },
+  { action: 'Allocate 10% to USDY RWA Pool', risk: 3, limit: 7, rejected: false },
+  { action: 'Stake 15% in mETH Liquid Staking', risk: 4, limit: 7, rejected: false },
+  { action: 'Allocate 60% to single RWA token', risk: 8, limit: 7, rejected: true },
 ]
 
-const stats = [
-  { value: '3', label: 'Mainnet Contracts' },
-  { value: '5', label: 'Constitutional Rules' },
-  { value: '100%', label: 'Decisions Auditable' },
-  { value: 'ERC-8004', label: 'Identity Standard' },
-]
+function HeroPipeline() {
+  const [phase, setPhase] = useState<Phase>('PROPOSE')
+  const [scenarioIdx, setScenarioIdx] = useState(0)
+  const [trust, setTrust] = useState(82)
+  const scenario = HERO_SCENARIOS[scenarioIdx]
 
-const sovereigns = [
-  { name: 'Sovereign Alpha', strategy: 'Balanced RWA', trust: 76, compliance: 85, decisions: 13 },
-  { name: 'Sovereign Yield', strategy: 'High Yield', trust: 71, compliance: 78, decisions: 24 },
-  { name: 'Sovereign Stable', strategy: 'Stablecoin Focus', trust: 94, compliance: 97, decisions: 31 },
-]
+  useEffect(() => {
+    const seq: { phase: Phase; delay: number }[] = scenario.rejected
+      ? [
+          { phase: 'PROPOSE', delay: 0 },
+          { phase: 'VALIDATE', delay: 1400 },
+          { phase: 'REJECTED', delay: 2600 },
+        ]
+      : [
+          { phase: 'PROPOSE', delay: 0 },
+          { phase: 'VALIDATE', delay: 1400 },
+          { phase: 'APPROVED', delay: 2600 },
+          { phase: 'PROOF', delay: 3800 },
+          { phase: 'TRUST', delay: 5200 },
+        ]
+
+    const timers = seq.map(({ phase, delay }) => setTimeout(() => setPhase(phase), delay))
+    const cycle = setTimeout(() => {
+      if (!scenario.rejected) setTrust((t) => Math.min(100, t + 1))
+      setScenarioIdx((i) => (i + 1) % HERO_SCENARIOS.length)
+    }, scenario.rejected ? 4400 : 6800)
+
+    return () => { timers.forEach(clearTimeout); clearTimeout(cycle) }
+  }, [scenarioIdx, scenario.rejected])
+
+  const steps: { id: Phase; label: string }[] = [
+    { id: 'PROPOSE', label: 'AI PROPOSAL' },
+    { id: 'VALIDATE', label: 'VALIDATION' },
+    { id: scenario.rejected ? 'REJECTED' : 'APPROVED', label: scenario.rejected ? 'REJECTED' : 'APPROVED' },
+    { id: 'PROOF', label: 'PROOF' },
+    { id: 'TRUST', label: 'TRUST SCORE' },
+  ]
+
+  const phaseOrder: Phase[] = ['PROPOSE', 'VALIDATE', scenario.rejected ? 'REJECTED' : 'APPROVED', 'PROOF', 'TRUST']
+  const currentIdx = phaseOrder.indexOf(phase)
+
+  return (
+    <div className="border border-[#1C2333] bg-[#0F1422]">
+      {/* Terminal header */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1C2333]">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#00FFB2]" />
+          <span className="text-[#8AA0FF] text-[11px] tracking-widest font-mono">SOVEREIGN-ALPHA · LIVE</span>
+        </div>
+        <span className="text-[#5A6680] text-[11px] font-mono">MANTLE MAINNET</span>
+      </div>
+
+      {/* Pipeline rail */}
+      <div className="flex items-stretch border-b border-[#1C2333]">
+        {steps.map((step, i) => {
+          const active = i === currentIdx
+          const done = i < currentIdx
+          const isRej = step.id === 'REJECTED'
+          const color = isRej ? '#FF4D4D' : step.id === 'APPROVED' ? '#00FFB2' : step.id === 'PROOF' ? '#FFD166' : step.id === 'TRUST' ? '#8AA0FF' : '#8AA0FF'
+          return (
+            <div key={i} className="flex-1 px-3 py-3 border-r border-[#1C2333] last:border-r-0 relative">
+              <div className="text-[10px] font-mono tracking-wider mb-1" style={{ color: active || done ? color : '#5A6680' }}>
+                {String(i + 1).padStart(2, '0')}
+              </div>
+              <div className="text-[10px] font-mono tracking-wider" style={{ color: active ? color : done ? '#8AA0FF' : '#5A6680' }}>
+                {step.label}
+              </div>
+              {active && (
+                <motion.div
+                  layoutId="hero-rail"
+                  className="absolute bottom-0 left-0 right-0 h-[2px]"
+                  style={{ background: color }}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Live readout */}
+      <div className="p-5 font-mono min-h-[180px]">
+        <AnimatePresence mode="wait">
+          {(phase === 'PROPOSE' || phase === 'VALIDATE') && (
+            <motion.div key="proposing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="grid grid-cols-2 gap-y-3 text-[13px]">
+                <span className="text-[#5A6680]">AI ACTION</span>
+                <span className="text-[#E6EAF2] text-right">{scenario.action}</span>
+                <span className="text-[#5A6680]">RISK SCORE</span>
+                <span className="text-right" style={{ color: scenario.risk > scenario.limit ? '#FF4D4D' : '#00FFB2' }}>{scenario.risk}.0</span>
+                <span className="text-[#5A6680]">POLICY LIMIT</span>
+                <span className="text-[#E6EAF2] text-right">{scenario.limit}.0</span>
+                <span className="text-[#5A6680]">STATUS</span>
+                <span className="text-right text-[#8AA0FF]">
+                  {phase === 'PROPOSE' ? 'PROPOSED' : 'VALIDATING…'}
+                </span>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === 'REJECTED' && (
+            <motion.div key="rejected" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="text-[#FF4D4D] text-2xl tracking-widest mb-2">BLOCKED</div>
+              <div className="text-[#5A6680] text-[13px] mb-4">Risk threshold exceeded · {scenario.risk}.0 &gt; {scenario.limit}.0</div>
+              <div className="text-[#5A6680] text-[11px]">Action prevented before execution · Recorded on Mantle</div>
+            </motion.div>
+          )}
+
+          {phase === 'APPROVED' && (
+            <motion.div key="approved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="text-[#00FFB2] text-2xl tracking-widest mb-2">APPROVED</div>
+              <div className="text-[#5A6680] text-[13px]">All constitutional constraints satisfied</div>
+            </motion.div>
+          )}
+
+          {phase === 'PROOF' && (
+            <motion.div key="proof" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="text-[#FFD166] text-sm tracking-widest mb-3">PROOF RECORDED ON MANTLE</div>
+              <div className="space-y-1.5 text-[12px]">
+                <div className="flex justify-between"><span className="text-[#5A6680]">DECISION HASH</span><span className="text-[#FFD166]">0x4f3a…b6c7</span></div>
+                <div className="flex justify-between"><span className="text-[#5A6680]">CONSTITUTION</span><span className="text-[#FFD166]">0x9b2c…d8e9</span></div>
+                <div className="flex justify-between"><span className="text-[#5A6680]">TX STATUS</span><span className="text-[#00FFB2]">CONFIRMED</span></div>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === 'TRUST' && (
+            <motion.div key="trust" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="text-[#8AA0FF] text-sm tracking-widest mb-3">TRUST SCORE UPDATED</div>
+              <div className="flex items-end gap-3 mb-3">
+                <span className="text-[#E6EAF2] text-4xl tracking-tight">{trust}</span>
+                <span className="text-[#00FFB2] text-sm mb-1">▲ +1</span>
+              </div>
+              <div className="h-1 bg-[#1C2333] w-full">
+                <motion.div className="h-1 bg-[#8AA0FF]" initial={{ width: 0 }} animate={{ width: `${trust}%` }} transition={{ duration: 0.8 }} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-[#0B0F1A] text-[#E6EAF2]">
       <Navbar />
 
-      {/* Hero */}
-      <section className="max-w-7xl mx-auto px-6 pt-16 pb-16 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-block border border-cyan-800 bg-cyan-950/30 text-cyan-400 text-xs px-4 py-2 rounded-full mb-6 tracking-widest">
-            MANTLE TURING TEST HACKATHON 2026
+      {/* ── SECTION 1 — HERO ── */}
+      <section className="border-b border-[#1C2333] grid-bg">
+        <div className="max-w-7xl mx-auto px-8 py-24 grid lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 border border-[#1C2333] px-3 py-1.5 mb-8">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00FFB2]" />
+              <span className="text-[#8AA0FF] text-[11px] tracking-widest font-mono">CONSTITUTIONAL ENFORCEMENT LAYER</span>
+            </div>
+            <h1 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05] mb-6">
+              Every Decision.<br />On-Chain.<br />With Proof.
+            </h1>
+            <p className="text-[#8AA0FF] text-lg leading-relaxed mb-10 max-w-xl">
+              Sovereign is a constitutional enforcement layer for AI agents. Every action is validated against rules, recorded on Mantle, and auditable through Witness.
+            </p>
+            <div className="flex gap-3">
+              <Link href="/demo" className="px-6 py-3 bg-[#E6EAF2] text-[#0B0F1A] text-sm font-semibold tracking-wide hover:bg-white transition-colors">
+                Launch Demo
+              </Link>
+              <a href={`${EXPLORER}/address/${CONTRACTS.identity}`} target="_blank" rel="noopener noreferrer" className="px-6 py-3 border border-[#1C2333] text-[#E6EAF2] text-sm font-semibold tracking-wide hover:border-[#5A6680] transition-colors">
+                View Contracts
+              </a>
+            </div>
           </div>
-          <h1 className="text-6xl font-black tracking-widest text-white mb-6 leading-tight">
-            SOVEREIGN
-          </h1>
-          <p className="text-2xl text-gray-300 mb-4 max-w-3xl mx-auto">
-            The First Constitutional Accountability Framework for Autonomous AI Financial Institutions
-          </p>
-          <p className="text-gray-500 text-lg mb-10 max-w-2xl mx-auto">
-            An AI cannot act unless it proves it is allowed to act.
-            Every decision is validated, recorded on Mantle, reviewed by Witness, and contributes to a public reputation score.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap mb-6">
-            <Link
-              href="/create"
-              className="px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black tracking-wider rounded-lg transition-colors text-sm"
-            >
-              CREATE SOVEREIGN →
-            </Link>
-            <Link
-              href="/demo"
-              className="px-8 py-4 border border-cyan-600 hover:border-cyan-400 text-cyan-400 hover:text-cyan-300 font-bold tracking-wider rounded-lg transition-colors text-sm"
-            >
-              WATCH LIVE DEMO
-            </Link>
-            <Link
-              href="/leaderboard"
-              className="px-8 py-4 border border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white font-bold tracking-wider rounded-lg transition-colors text-sm"
-            >
-              LEADERBOARD
-            </Link>
-          </div>
-          <div className="flex items-center justify-center gap-6 text-xs text-gray-600">
-            <a
-              href="https://explorer.mantle.xyz/address/0x91606bd2ae6dfe3a82cc60644e75c87e4656f2b5"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-cyan-400 transition-colors flex items-center gap-1"
-            >
-              <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
-              Deployed on Mantle Mainnet · View Contracts →
-            </a>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-y border-gray-800 bg-gray-900/50">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <div className="grid grid-cols-4 gap-8 text-center">
-            {stats.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <div className="text-4xl font-black text-cyan-400 mb-1">{stat.value}</div>
-                <div className="text-gray-500 text-xs tracking-widest">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+          <HeroPipeline />
         </div>
       </section>
 
-      {/* Trust Lifecycle */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black tracking-widest text-white mb-3">THE TRUST LIFECYCLE</h2>
-          <p className="text-gray-500">Every AI decision follows this mandatory path</p>
-        </div>
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {[
-            { step: '01', label: 'AI PROPOSES', color: 'border-blue-600 bg-blue-950/40 text-blue-400' },
-            { step: '→', label: '', color: 'text-gray-600 border-transparent bg-transparent text-2xl' },
-            { step: '02', label: 'CONSTITUTION VALIDATES', color: 'border-yellow-600 bg-yellow-950/40 text-yellow-400' },
-            { step: '→', label: '', color: 'text-gray-600 border-transparent bg-transparent text-2xl' },
-            { step: '03', label: 'MANTLE RECORDS', color: 'border-green-600 bg-green-950/40 text-green-400' },
-            { step: '→', label: '', color: 'text-gray-600 border-transparent bg-transparent text-2xl' },
-            { step: '04', label: 'WITNESS REVIEWS', color: 'border-purple-600 bg-purple-950/40 text-purple-400' },
-            { step: '→', label: '', color: 'text-gray-600 border-transparent bg-transparent text-2xl' },
-            { step: '05', label: 'REPUTATION UPDATES', color: 'border-cyan-600 bg-cyan-950/40 text-cyan-400' },
-          ].map((item, i) => (
-            item.label ? (
-              <div key={i} className={`border rounded-xl p-4 text-center min-w-32 ${item.color}`}>
-                <div className="text-xs font-black mb-1">{item.step}</div>
-                <div className="text-xs">{item.label}</div>
-              </div>
-            ) : (
-              <div key={i} className="text-gray-600 text-2xl">{item.step}</div>
-            )
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-black tracking-widest text-white mb-3">CORE FEATURES</h2>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="border border-gray-800 bg-gray-900 rounded-xl p-6 hover:border-gray-600 transition-colors"
-            >
-              <div className="text-3xl mb-3">{feature.icon}</div>
-              <h3 className="text-white font-black tracking-wider mb-2">{feature.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Live Sovereigns Preview */}
-      <section className="border-t border-gray-800 bg-gray-900/30">
-        <div className="max-w-7xl mx-auto px-6 py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black tracking-widest text-white mb-3">ACTIVE SOVEREIGNS</h2>
-            <p className="text-gray-500">Autonomous AI institutions competing for trust</p>
-          </div>
-          <div className="grid grid-cols-3 gap-6 mb-8">
-            {sovereigns.map((s, i) => (
-              <motion.div
-                key={s.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="border border-gray-700 bg-gray-900 rounded-xl p-6"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="text-white font-black">{s.name}</div>
-                    <div className="text-gray-500 text-xs mt-1">{s.strategy}</div>
-                  </div>
-                  <div className="text-cyan-400 font-black text-2xl">{s.trust}</div>
-                </div>
-                <div className="w-full bg-gray-800 rounded-full h-1.5 mb-4">
-                  <div
-                    className="bg-cyan-400 h-1.5 rounded-full transition-all duration-1000"
-                    style={{ width: `${s.trust}%` }}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                  <div>Compliance: <span className="text-white">{s.compliance}%</span></div>
-                  <div>Decisions: <span className="text-white">{s.decisions}</span></div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          <div className="text-center">
-            <Link href="/leaderboard" className="text-cyan-400 hover:text-cyan-300 text-sm tracking-wider transition-colors">
-              VIEW FULL LEADERBOARD →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-          <h2 className="text-4xl font-black tracking-widest text-white mb-4">
-            EVERY DECISION.<br />ON-CHAIN. WITH PROOF.
-          </h2>
-          <p className="text-gray-500 mb-8 max-w-xl mx-auto">
-            The future of autonomous finance will not be built on blind automation.
-            It will be built on constitutional governance, public accountability, and verifiable trust.
-          </p>
-          <Link
-            href="/demo"
-            className="inline-block px-10 py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black tracking-wider rounded-lg transition-colors"
-          >
-            SEE IT IN ACTION →
-          </Link>
-        </div>
-      </section>
-
-      {/* Powered By */}
-      <section className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <div className="text-center mb-6">
-            <div className="text-gray-600 text-xs tracking-widest">POWERED BY THE MANTLE ECOSYSTEM</div>
-          </div>
-          <div className="flex flex-wrap justify-center items-center gap-8">
+      {/* ── SECTION 2 — HOW IT WORKS ── */}
+      <section className="border-b border-[#1C2333]">
+        <div className="max-w-7xl mx-auto px-8 py-20">
+          <div className="text-[#5A6680] text-[11px] tracking-widest font-mono mb-3">SYSTEM ARCHITECTURE</div>
+          <h2 className="text-3xl font-bold tracking-tight mb-12">How It Works</h2>
+          <div className="grid lg:grid-cols-4 gap-px bg-[#1C2333] border border-[#1C2333]">
             {[
-              { name: 'Mantle', role: 'L2 Infrastructure' },
-              { name: 'Bybit', role: 'Market Data' },
-              { name: 'Ondo Finance', role: 'USDY RWA' },
-              { name: 'Mantle LSP', role: 'mETH Staking' },
-              { name: 'ERC-8004', role: 'Agent Identity' },
-              { name: 'Groq', role: 'AI Inference' },
-            ].map((p) => (
-              <div key={p.name} className="text-center">
-                <div className="text-gray-300 text-sm font-bold">{p.name}</div>
-                <div className="text-gray-600 text-xs">{p.role}</div>
+              { n: '01', t: 'AI Proposes Action', d: 'An autonomous agent submits a financial action for execution.', c: '#8AA0FF' },
+              { n: '02', t: 'Sovereign Validates', d: 'The action is checked against every constitutional rule before it can proceed.', c: '#FFD166' },
+              { n: '03', t: 'Witness Records Proof', d: 'A verifiable proof is committed on Mantle and reviewed by the accountability layer.', c: '#00FFB2' },
+              { n: '04', t: 'Reputation Updates', d: 'Trust score adjusts based on compliance — never on profit alone.', c: '#8AA0FF' },
+            ].map((s) => (
+              <div key={s.n} className="bg-[#0B0F1A] p-6">
+                <div className="text-2xl font-mono mb-4" style={{ color: s.c }}>{s.n}</div>
+                <div className="text-[#E6EAF2] font-semibold mb-2">{s.t}</div>
+                <div className="text-[#5A6680] text-sm leading-relaxed">{s.d}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Tech Stack */}
-      <section className="border-t border-gray-800 bg-gray-900/20">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="text-center mb-8">
-            <h2 className="text-xl font-black tracking-widest text-gray-400 mb-2">BUILT WITH</h2>
+      {/* ── SECTION 3 — LIVE DECISION ENGINE ── */}
+      <section className="border-b border-[#1C2333]">
+        <div className="max-w-7xl mx-auto px-8 py-20 grid lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <div className="text-[#5A6680] text-[11px] tracking-widest font-mono mb-3">DECISION ENGINE</div>
+            <h2 className="text-3xl font-bold tracking-tight mb-6">Risk is enforced<br />before execution.</h2>
+            <p className="text-[#8AA0FF] leading-relaxed mb-6 max-w-md">
+              The Constitution Engine evaluates every proposed action against hard policy limits. Violations are not warnings — they are hard blocks.
+            </p>
+            <Link href="/demo" className="text-[#E6EAF2] text-sm font-semibold border-b border-[#1C2333] hover:border-[#E6EAF2] transition-colors pb-1">
+              Run the live engine →
+            </Link>
           </div>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="border border-[#1C2333] bg-[#0F1422] p-6 font-mono">
+            <div className="text-[#5A6680] text-[11px] tracking-widest mb-4">DECISION #1042</div>
+            <div className="grid grid-cols-2 gap-y-3 text-[13px] mb-5">
+              <span className="text-[#5A6680]">AI ACTION</span>
+              <span className="text-[#E6EAF2] text-right">Allocate 15% to Asset Pool</span>
+              <span className="text-[#5A6680]">RISK SCORE</span>
+              <span className="text-[#FF4D4D] text-right">8.2</span>
+              <span className="text-[#5A6680]">POLICY LIMIT</span>
+              <span className="text-[#E6EAF2] text-right">7.0</span>
+            </div>
+            <div className="border-t border-[#1C2333] pt-4">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[#5A6680] text-[13px]">RESULT</span>
+                <span className="text-[#FF4D4D] text-lg tracking-widest">BLOCKED</span>
+              </div>
+              <div className="text-[#5A6680] text-[12px]">Reason: Risk threshold exceeded</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 4 — WITNESS NETWORK ── */}
+      <section className="border-b border-[#1C2333]">
+        <div className="max-w-7xl mx-auto px-8 py-20">
+          <div className="text-[#5A6680] text-[11px] tracking-widest font-mono mb-3">ACCOUNTABILITY LAYER</div>
+          <h2 className="text-3xl font-bold tracking-tight mb-12">Witness Network</h2>
+          <div className="border border-[#1C2333] bg-[#0F1422] font-mono">
+            <div className="grid grid-cols-12 px-5 py-3 border-b border-[#1C2333] text-[#5A6680] text-[11px] tracking-widest">
+              <span className="col-span-2">CASE</span>
+              <span className="col-span-5">ACTION</span>
+              <span className="col-span-2">RISK</span>
+              <span className="col-span-3 text-right">VERDICT</span>
+            </div>
             {[
-              { name: 'Mantle Network', desc: 'L2 Blockchain' },
-              { name: 'ERC-8004', desc: 'Agent Identity' },
-              { name: 'Bybit API', desc: 'Live Market Data' },
-              { name: 'Groq LLaMA', desc: 'AI Decisions' },
-              { name: 'Next.js', desc: 'Frontend' },
-              { name: 'Solidity', desc: 'Smart Contracts' },
-              { name: 'Viem', desc: 'Blockchain Client' },
-              { name: 'Framer Motion', desc: 'Animations' },
-            ].map((tech) => (
-              <div key={tech.name} className="border border-gray-700 bg-gray-900 rounded-lg px-4 py-2 text-center">
-                <div className="text-white text-xs font-bold">{tech.name}</div>
-                <div className="text-gray-600 text-xs">{tech.desc}</div>
+              { id: '1042', action: 'Allocate 15% to Asset Pool', risk: '8.2', verdict: 'REJECTED' },
+              { id: '1041', action: 'Allocate 10% to USDY RWA Pool', risk: '3.0', verdict: 'APPROVED' },
+              { id: '1040', action: 'Stake 15% in mETH Liquid Staking', risk: '4.0', verdict: 'APPROVED' },
+              { id: '1039', action: 'Allocate 60% to single RWA token', risk: '8.0', verdict: 'REJECTED' },
+              { id: '1038', action: 'Allocate 8% to fBTC Yield', risk: '4.0', verdict: 'APPROVED' },
+            ].map((c) => (
+              <div key={c.id} className="grid grid-cols-12 px-5 py-3.5 border-b border-[#1C2333] last:border-b-0 text-[13px] items-center hover:bg-[#0B0F1A] transition-colors">
+                <span className="col-span-2 text-[#8AA0FF]">#{c.id}</span>
+                <span className="col-span-5 text-[#E6EAF2]">{c.action}</span>
+                <span className="col-span-2" style={{ color: parseFloat(c.risk) > 7 ? '#FF4D4D' : '#00FFB2' }}>{c.risk}</span>
+                <span className="col-span-3 text-right tracking-widest" style={{ color: c.verdict === 'APPROVED' ? '#00FFB2' : '#FF4D4D' }}>{c.verdict}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-800 bg-gray-950">
-        {/* Main footer content */}
-        <div className="max-w-7xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-
-            {/* Brand */}
-            <div className="md:col-span-2">
-              <div className="text-2xl font-black tracking-widest text-white mb-3">SOVEREIGN</div>
-              <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-sm">
-                The first constitutional accountability framework for autonomous AI financial institutions.
-                Every decision validated. Every proof on-chain. Every Sovereign accountable.
-              </p>
-              <div className="inline-flex items-center gap-2 border border-cyan-800 bg-cyan-950/30 text-cyan-400 text-xs px-4 py-2 rounded-full tracking-widest">
-                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block"></span>
-                LIVE ON MANTLE MAINNET
-              </div>
+      {/* ── SECTION 5 — TRUST SCORE ── */}
+      <section className="border-b border-[#1C2333]">
+        <div className="max-w-7xl mx-auto px-8 py-20 grid lg:grid-cols-2 gap-16 items-center">
+          <div className="border border-[#1C2333] bg-[#0F1422] p-8">
+            <div className="text-[#5A6680] text-[11px] tracking-widest font-mono mb-4">SOVEREIGN-ALPHA · TRUST SCORE</div>
+            <div className="flex items-end gap-4 mb-6">
+              <span className="text-6xl font-bold tracking-tight">94</span>
+              <span className="text-[#00FFB2] text-sm mb-2 font-mono">▲ EARNED</span>
             </div>
-
-            {/* Navigate */}
-            <div>
-              <div className="text-gray-400 text-xs font-bold tracking-widest mb-4">NAVIGATE</div>
-              <ul className="space-y-3">
-                {[
-                  { label: 'Live Demo', href: '/demo' },
-                  { label: 'Leaderboard', href: '/leaderboard' },
-                  { label: 'Constitution', href: '/constitution' },
-                  { label: 'Audit Terminal', href: '/audit' },
-                  { label: 'Create Sovereign', href: '/create' },
-                ].map((link) => (
-                  <li key={link.label}>
-                    <Link href={link.href} className="text-gray-500 hover:text-white text-sm transition-colors">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div className="h-1 bg-[#1C2333] mb-6"><div className="h-1 bg-[#8AA0FF]" style={{ width: '94%' }} /></div>
+            <div className="grid grid-cols-3 gap-px bg-[#1C2333] border border-[#1C2333] font-mono">
+              {[['97%', 'COMPLIANCE'], ['31', 'AUDITS'], ['30', 'PASSED']].map(([v, l]) => (
+                <div key={l} className="bg-[#0B0F1A] p-4 text-center">
+                  <div className="text-[#E6EAF2] text-xl">{v}</div>
+                  <div className="text-[#5A6680] text-[10px] tracking-widest mt-1">{l}</div>
+                </div>
+              ))}
             </div>
-
-            {/* Contracts */}
-            <div>
-              <div className="text-gray-400 text-xs font-bold tracking-widest mb-4">CONTRACTS</div>
-              <ul className="space-y-3">
-                {[
-                  { label: 'SovereignIdentity', full: '0x91606bd2ae6dfe3a82cc60644e75c87e4656f2b5', short: '0x91606b...f2b5' },
-                  { label: 'ProofRegistry', full: '0xf4d31a74fa4881083ccfcb0cbe2d89f98b07f5bd', short: '0xf4d31a...f5bd' },
-                  { label: 'ReputationRegistry', full: '0xa2a19f470c62119ceb93ef716068b0ed81aebbd0', short: '0xa2a19f...bd0' },
-                ].map((c) => (
-                  <li key={c.label}>
-                    <a
-                      href={`https://explorer.mantle.xyz/address/${c.full}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-500 hover:text-cyan-400 text-sm transition-colors"
-                    >
-                      <div className="text-gray-300 text-xs font-bold mb-0.5">{c.label}</div>
-                      <div className="font-mono text-xs">{c.short}</div>
-                    </a>
-                  </li>
-                ))}
-              </ul>
+          </div>
+          <div>
+            <div className="text-[#5A6680] text-[11px] tracking-widest font-mono mb-3">REPUTATION</div>
+            <h2 className="text-3xl font-bold tracking-tight mb-6">Trust is earned,<br />not assumed.</h2>
+            <p className="text-[#8AA0FF] leading-relaxed mb-6 max-w-md">
+              A Sovereign&apos;s reputation is a function of its behavior over time — not its returns. Profit alone does not build trust.
+            </p>
+            <div className="space-y-3 font-mono text-sm">
+              {['Constitutional compliance', 'Successful audits', 'Consistent behavior'].map((t) => (
+                <div key={t} className="flex items-center gap-3">
+                  <span className="text-[#00FFB2]">+</span>
+                  <span className="text-[#E6EAF2]">{t}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Divider */}
-        <div className="border-t border-gray-800">
-          <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-gray-600 text-xs tracking-wider">
-              © 2026 SOVEREIGN · MANTLE TURING TEST HACKATHON · BUILT ON MANTLE NETWORK
-            </div>
-            <div className="flex items-center gap-6 text-xs">
-              <a
-                href="https://github.com/Megacollins/sovereign"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors flex items-center gap-1.5"
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-                </svg>
-                GitHub
+      {/* ── SECTION 6 — PROOF REGISTRY ── */}
+      <section className="border-b border-[#1C2333]">
+        <div className="max-w-7xl mx-auto px-8 py-20">
+          <div className="text-[#5A6680] text-[11px] tracking-widest font-mono mb-3">VERIFICATION</div>
+          <h2 className="text-3xl font-bold tracking-tight mb-3">Proof Registry</h2>
+          <p className="text-[#8AA0FF] mb-12 max-w-xl">Every decision proof is committed to live contracts on Mantle mainnet. Verify directly on-chain.</p>
+          <div className="grid lg:grid-cols-3 gap-px bg-[#1C2333] border border-[#1C2333] font-mono">
+            {[
+              ['SovereignIdentity', 'ERC-8004', CONTRACTS.identity],
+              ['ProofRegistry', 'Decision Proofs', CONTRACTS.proof],
+              ['ReputationRegistry', 'Trust Scores', CONTRACTS.reputation],
+            ].map(([name, role, addr]) => (
+              <a key={name} href={`${EXPLORER}/address/${addr}`} target="_blank" rel="noopener noreferrer" className="bg-[#0B0F1A] p-6 hover:bg-[#0F1422] transition-colors group">
+                <div className="text-[#E6EAF2] text-sm font-semibold mb-1">{name}</div>
+                <div className="text-[#5A6680] text-[11px] tracking-widest mb-4">{role}</div>
+                <div className="text-[#8AA0FF] text-[12px] break-all group-hover:text-[#FFD166] transition-colors">{addr}</div>
+                <div className="text-[#5A6680] text-[11px] mt-3 tracking-widest">VIEW ON MANTLE →</div>
               </a>
-              <a
-                href="https://dorahacks.io/hackathon/mantleturingtesthackathon2026/detail"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors"
-              >
-                DoraHacks
-              </a>
-              <a
-                href="https://explorer.mantle.xyz"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-cyan-400 transition-colors"
-              >
-                Mantle Explorer
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors flex items-center gap-1.5"
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>
-                </svg>
-                Twitter
-              </a>
-            </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* Bottom tagline */}
-        <div className="border-t border-gray-900 bg-black/40">
-          <div className="max-w-7xl mx-auto px-6 py-3 text-center">
-            <span className="text-gray-700 text-xs tracking-widest font-bold">
-              AN AI CANNOT ACT UNLESS IT PROVES IT IS ALLOWED TO ACT · EVERY DECISION. ON-CHAIN. WITH PROOF.
-            </span>
+      {/* ── SECTION 7 — FOOTER ── */}
+      <footer>
+        <div className="max-w-7xl mx-auto px-8 py-10 flex flex-wrap justify-between items-center gap-6">
+          <div className="font-mono text-[#5A6680] text-[11px] tracking-widest">
+            SOVEREIGN · CONSTITUTIONAL ENFORCEMENT FOR AI AGENTS
+          </div>
+          <div className="flex gap-8 font-mono text-[12px] text-[#8AA0FF]">
+            <Link href="/demo" className="hover:text-[#E6EAF2] transition-colors">Demo</Link>
+            <a href="https://github.com/Megacollins/sovereign" target="_blank" rel="noopener noreferrer" className="hover:text-[#E6EAF2] transition-colors">GitHub</a>
+            <a href="https://mantle.xyz" target="_blank" rel="noopener noreferrer" className="hover:text-[#E6EAF2] transition-colors">Mantle</a>
+            <a href={`${EXPLORER}/address/${CONTRACTS.identity}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#E6EAF2] transition-colors">Registry</a>
           </div>
         </div>
       </footer>
